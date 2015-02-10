@@ -1,2 +1,2 @@
 # ReproducibleResearch
-Project for Coursera Reporducible Research course.
+Project for Coursera Reproducible Research course.
