@@ -5,14 +5,39 @@ date: "Monday, February 09, 2015"
 output: html_document
 xruntime: shiny
 ---
-data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
-Data
+### Project Instructions
+* [Project Instructions](https://class.coursera.org/repdata-011/human_grading/view/courses/973512/assessments/3/submissions)
 
-The data for this assignment can be downloaded from the course web site:
+### Fetching the data
+The data is from a personal activity monitoring device that collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
-[Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) - 52K
+* The data for this assignment can be downloaded from the course web site:
+		[Activity monitoring data ](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) - 52K
 
 ```{r load_data}
 
+load_data <- function()
+{
+	library(downloader)
+	
+	options(RCurlOptions = list(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl")))
+
+	fileurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+	destfile <- file.path("data", "repdata_data_activity.zip")
+	
+	print(paste("Downloading files from '",fileurl,"' to '",destfile,"'",sep="") )
+	
+	download.file(fileurl, destfile, quiet = FALSE, mode = "wb", cacheOK = TRUE )
+/***
+	stuff=getBinaryURL(fileurl)	
+	con <- file(destfile, open = "wb")
+	writeBin(stuff, con) 
+	close(con)
+***/	
+	print("Unzipping")
+	unzip(destfile, junkpaths = TRUE, exdir = "data", unzip = "internal",
+      setTimes = FALSE)
+	print("file is now in data/activity.csv")
+}
 	
 ```
