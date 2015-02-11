@@ -1,19 +1,19 @@
 ---
-title: "Project1"
+title: "Reproducible Research: Peer Assessment 1"
 author: "dar7yl"
 date: "Monday, February 09, 2015"
 output: html_document
-xruntime: shiny
+keep_md: true
 ---
 ### Project Instructions
-* [Project Instructions](https://class.coursera.org/repdata-011/human_grading/view/courses/973512/assessments/3/submissions)
+* [Project Instructions on website](https://class.coursera.org/repdata-011/human_grading/view/courses/973512/assessments/3/submissions)
+* [local Copy](RepData_PeerAssessment1/doc/instructions.pdf)
 
-### Fetching the data
+## Loading and preprocessing the data
 The data is from a personal activity monitoring device that collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
 * The data for this assignment can be downloaded from the course web site:
 		[Activity monitoring data ](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) - 52K
-
 ```{r load_data, echo=TRUE}
 
 load_data <- function()
@@ -31,8 +31,23 @@ load_data <- function()
 	unzip(destfile, junkpaths = TRUE, exdir = "data", unzip = "internal",
       setTimes = FALSE)
 	print("file is now in data/activity.csv")
+
+	#we'll go right ahead and read the data and put it in the global environment
 	activity <- read.csv("data/activity.csv")
-	
+	assign("activity", activity, envir = .GlobalEnv) 
 }
 	
 ```
+## What is mean total number of steps taken per day?
+
+
+
+## What is the average daily activity pattern?
+
+
+
+## Imputing missing values
+
+
+
+## Are there differences in activity patterns between weekdays and weekends?
