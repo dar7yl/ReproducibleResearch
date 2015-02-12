@@ -21,29 +21,35 @@ load_data <- function()
 	library(downloader)
 	
 	fileurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
-	destfile <- file.path("data", "repdata_data_activity.zip")
+	zipfile <- file.path("data", "repdata_data_activity.zip")
 	
-	print(paste("Downloading files from '",fileurl,"' to '",destfile,"'",sep="") )
+	print(paste("Downloading files from '",fileurl,"' to '",zipfile,"'",sep="") )
 	
-	download.file(fileurl, destfile, quiet = FALSE, mode = "wb", cacheOK = TRUE )
+	download.file(fileurl, zipfile, quiet = FALSE, mode = "wb", cacheOK = TRUE )
 
 	print("Unzipping")
-	unzip(destfile, junkpaths = TRUE, exdir = "data", unzip = "internal",
-      setTimes = FALSE)
-	print("file is now in data/activity.csv")
+	unzip(zipfile, junkpaths=TRUE, exdir="data", unzip="internal", setTimes=FALSE)
+	print(paste("file is now in", zipfile), sep=" ")
 
 	#we'll go right ahead and read the data and put it in the global environment
-	activity <- read.csv("data/activity.csv")
-	assign("activity", activity, envir = .GlobalEnv) 
+	activity_Classes <- c( "numeric", "Date", "numeric")
+
+	activity <- read.csv(zipfile, colClasses= activity_Classes)
+	assign("activity", activity, envir = .GlobalEnv,) 
 }
 	
 ```
 ## What is mean total number of steps taken per day?
 
-
-
 ## What is the average daily activity pattern?
+```{r means, echo=TRUE, eval=TRUE}
 
+means<-aggregate( activity$steps, by=list(activity$date), 
+						FUN=mean, na.action = na.omit)
+summary(means)
+tmean<-mean(means$x, na.rm=TRUE)
+tmean
+```
 
 
 ## Imputing missing values
