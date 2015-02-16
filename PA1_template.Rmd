@@ -1,52 +1,94 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
-author: "dar7yl"
-date: "Monday, February 09, 2015"
+author: "Daryl Hegyi"
+date: "Sunday, February 15, 2015"
 output: 
   html_document:
     keep_md: true
 ---
+### Project Location
+
+* [GitHub Repository](https://github.com/dar7yl/ReproducibleResearch)
+
+---
 ### Project Instructions
 * [Project Instructions on website](https://class.coursera.org/repdata-011/human_grading/view/courses/973512/assessments/3/submissions)
 * [local Copy](RepData_PeerAssessment1/doc/instructions.pdf)
+
+### Set up R environment
+```{r, echo=F}
+```
 
 ## Loading and preprocessing the data
 The data is from a personal activity monitoring device that collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
 * The data for this assignment can be downloaded from the course web site:
 		[Activity monitoring data ](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) - 52K
+		
+### Load Data function, called later
 ```{r load_data, echo=TRUE}
 
 load_data <- function()
 {
 	library(downloader)
-	
-	fileurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
-	zipfile <- file.path("data", "repdata_data_activity.zip")
-	
-	print(paste("Downloading files from '",fileurl,"' to '",zipfile,"'",sep="") )
-	
-	download.file(fileurl, zipfile, quiet = FALSE, mode = "wb", cacheOK = TRUE )
 
-	print("Unzipping")
-	unzip(zipfile, junkpaths=TRUE, exdir="data", unzip="internal", setTimes=FALSE)
-	print(paste("file is now in", zipfile), sep=" ")
-
+	csvfile<-file.path("data", "activity.csv")
+	if (!file.exists(csvfile))
+	{
+		zipfile <- file.path("RepData_PeerAssessment1", "activity.zip")
+		if (!file.exists(zipfile))
+		{
+			#we're going to download it to a different location
+			zipfile <- file.path("data", "activity.zip")
+			fileurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+			
+			print(paste("Downloading files from '",fileurl,"' to '",zipfile,"'",sep="") )
+			
+			download.file(fileurl, zipfile, quiet = FALSE, mode = "wb", cacheOK = TRUE )
+		}
+	
+		print(paste("Unzipping ", zipfile, "to data/",sep=" "))
+		unzip(zipfile, junkpaths=TRUE, exdir="data", unzip="internal", setTimes=FALSE)
+		print(paste("data is now in ", csvfile),sep="")
+	}
+	
 	#we'll go right ahead and read the data and put it in the global environment
 	activity_Classes <- c( "numeric", "Date", "numeric")
-
-	activity <- read.csv(zipfile, colClasses= activity_Classes)
+	activity <- read.csv(csvfile, colClasses= activity_Classes)
 	assign("activity", activity, envir = .GlobalEnv,) 
 }
+```
+
+### Read in and massage data
+```{r massage_data, echo=TRUE}
+load_data()  #get data into activity
+
+#extract days of week
+activity$dow<-factor( as.POSIXlt(activity$date)$wday, levels=c(0,1,2,3,4,5,6), 
+				 labels=c("Sun","Mon","Tue","Wed","Thu","Fri","Sat"), ordered=TRUE)
+
+#extract hour from interval
+activity$interval.hour<-as.factor(floor(activity$interval/100))
+
+summary(activity)
+
+plot(activity$date, activity$steps, col=as.factor(activity$date), 
+	  main="Total Steps, colour by date")
+plot(activity$date, activity$steps, col=activity$interval.hour, 
+	  main="Total Steps, colour by hour")
 	
 ```
+
+
 ## What is mean total number of steps taken per day?
 ```{r mean_total_steps}
 
-total_steps<-tapply(activity$steps,activity$date,sum)
+total_steps<-tapply(activity$steps, as.factor(activity$date), sum)
+
 summary(total_steps)
 mean(total_steps, na.rm=TRUE)
-plot(total_steps)
+plot(total_steps, type="b", main="Total Steps per day")
+hist(total_steps)
 ```
 
 
@@ -54,27 +96,60 @@ plot(total_steps)
 ## What is the average daily activity pattern?
 ```{r average_daily_activity, echo=TRUE, eval=TRUE}
 
-means<-aggregate( activity$steps, by=list(activity$date), 
-						FUN=mean, na.action = na.omit)
-summary(means)
-tmean<-mean(means$x, na.rm=TRUE)
+plot(activity$interval.hour, activity$steps, col="orange")
+
+means_by.date<-aggregate( activity$steps, 
+								  by=list(as.factor(activity$date)), 
+									FUN="mean", na.rm=T)
+summary(means_by.date)
+tmean<-mean(means_by.date$x, na.rm=TRUE)
 tmean
 
-means.interval<-aggregate( activity$steps, by=list(activity$interval), 
-						FUN=mean, na.action = na.omit)
-summary(means.interval)
+plot(means_by.date, main="Mean by Date", na.action=na.omit)
 
-intervals<-tapply(activity$steps,activity$interval,sum)
+
+
 
 ```
 
 
 ## Imputing missing values
-```{r missing_values}
-summary(is.na(activity$steps))
+```{r missing_values, echo=TRUE, eval=FALSE}
+
+steps.na<-is.na(activity$steps)
+summary(steps.na)
+
+activity$steps[steps.na)] =0
+plot(activity$steps, col=steps.na+1)
+
+total_steps<-tapply(activity$steps, activity$date, sum)
+summary(total_steps)
+
+mean_steps<-tapply(activity$steps, activity$date, FUN=function(x){mean(x,na.rm=T)})
+summary(mean_steps)
+
+dt<-as.Date(names(mean_steps))
+
+mean.na<-is.na(mean_steps)
+summary(mean.na)
+mean.na[!mean.na]=NA  # ignore non-na's
+
+plot(dt, mean_steps, col="green")
+points(dt, mean.na*30, col="red")
 
 ```
 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+plot(activity$steps, col=as.factor(activity$date))
+
+col1=as.factor(activity$interval/24);
+
+plot(activity$dow, activity$steps, main="Steps by Day of Week", 
+	  col=as.factor(activity$interval.hour))
+
+#steps.by_dow<-split(activity, activity$dow)
+#lapply(steps.by_dow, function(x){plot(x$Interval)})
+```
